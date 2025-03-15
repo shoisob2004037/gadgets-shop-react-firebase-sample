@@ -1,8 +1,8 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useAuth } from "../contexts/AuthContext"
-import { updateUserAddress } from "../firebase"
+import { updateUserAddress, getUserOrders } from "../firebase"
 
 function Profile() {
   const { currentUser, userProfile, setUserProfile } = useAuth()
@@ -21,6 +21,8 @@ function Profile() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   const [success, setSuccess] = useState("")
+  const [orders, setOrders] = useState([])
+  const [ordersLoading, setOrdersLoading] = useState(true)
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -54,6 +56,21 @@ function Profile() {
       setLoading(false)
     }
   }
+
+  useEffect(() => {
+    async function fetchOrders() {
+      try {
+        const userOrders = await getUserOrders(currentUser.uid)
+        setOrders(userOrders)
+      } catch (error) {
+        console.error("Error fetching orders:", error)
+      } finally {
+        setOrdersLoading(false)
+      }
+    }
+
+    fetchOrders()
+  }, [currentUser.uid])
 
   return (
     <div>
@@ -203,6 +220,108 @@ function Profile() {
                   {loading ? "Saving..." : "Save Changes"}
                 </button>
               </form>
+            </div>
+          </div>
+        </div>
+        <div className="col-md-6">
+          <div className="card">
+            <div className="card-body">
+              <h5 className="card-title mb-4">Order History</h5>
+
+              {ordersLoading ? (
+                <div className="text-center py-4">
+                  <div className="spinner-border text-primary" role="status">
+                    <span className="visually-hidden">Loading...</span>
+                  </div>
+                  <p className="mt-2">Loading your orders...</p>
+                </div>
+              ) : orders.length === 0 ? (
+                <div className="alert alert-info">You haven't placed any orders yet.</div>
+              ) : (
+                <div>
+                  {orders.map((order) => (
+                    <div key={order.id} className="card mb-3">
+                      <div className="card-header d-flex justify-content-between align-items-center">
+                        <div>
+                          <strong>Order #{order.id.slice(-6)}</strong>
+                          <div className="text-muted small">
+                            {order.createdAt?.toDate
+                              ? new Date(order.createdAt.toDate()).toLocaleString()
+                              : "Date unavailable"}
+                          </div>
+                        </div>
+                        <span className="badge bg-primary">${order.totalPrice?.toFixed(2)}</span>
+                      </div>
+                      <div className="card-body">
+                        <div className="row mb-3">
+                          <div className="col-md-6">
+                            <h6>Shipping Address</h6>
+                            <address className="mb-0">
+                              {order.deliveryAddress?.fullName}
+                              <br />
+                              {order.deliveryAddress?.addressLine1}
+                              <br />
+                              {order.deliveryAddress?.addressLine2 && (
+                                <>
+                                  {order.deliveryAddress.addressLine2}
+                                  <br />
+                                </>
+                              )}
+                              {order.deliveryAddress?.city}, {order.deliveryAddress?.state}{" "}
+                              {order.deliveryAddress?.zipCode}
+                              <br />
+                              {order.deliveryAddress?.country}
+                              <br />
+                              {order.deliveryAddress?.phoneNumber}
+                            </address>
+                          </div>
+                          <div className="col-md-6">
+                            <h6>Payment Method</h6>
+                            <p className="mb-0 text-capitalize">
+                              {order.paymentMethod}
+                              {order.paymentDetails?.cardLastFour && (
+                                <span className="d-block small">
+                                  Card ending in {order.paymentDetails.cardLastFour}
+                                </span>
+                              )}
+                            </p>
+                          </div>
+                        </div>
+
+                        <h6>Order Items</h6>
+                        <div className="table-responsive">
+                          <table className="table table-sm">
+                            <thead>
+                              <tr>
+                                <th>Item</th>
+                                <th>Quantity</th>
+                                <th className="text-end">Price</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {order.items?.map((item, idx) => (
+                                <tr key={idx}>
+                                  <td>{item.name}</td>
+                                  <td>{item.quantity}</td>
+                                  <td className="text-end">${(item.price * item.quantity).toFixed(2)}</td>
+                                </tr>
+                              ))}
+                              <tr>
+                                <td colSpan="2" className="text-end">
+                                  <strong>Total:</strong>
+                                </td>
+                                <td className="text-end">
+                                  <strong>${order.totalPrice?.toFixed(2)}</strong>
+                                </td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </div>

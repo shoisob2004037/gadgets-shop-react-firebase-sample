@@ -1,50 +1,61 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { useNavigate } from "react-router-dom"
-import { loginWithEmail, getUserProfile } from "../firebase"
-import { useAuth } from "../contexts/AuthContext"
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { loginWithEmail, getUserProfile } from "../firebase";
+import { useAuth } from "../contexts/AuthContext";
 
 function AdminLogin() {
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [error, setError] = useState("")
-  const [loading, setLoading] = useState(false)
-  const navigate = useNavigate()
-  const { setUserProfile } = useAuth()
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+  const { setUserProfile, user } = useAuth();
 
   useEffect(() => {
-    document.getElementById("email")?.focus()
-  }, [])
+    document.getElementById("email")?.focus();
+  }, []);
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
-    setError("")
-    setLoading(true)
+    e.preventDefault();
+    setError("");
+    setLoading(true);
 
     try {
-      const userCredential = await loginWithEmail(email, password)
-      const profile = await getUserProfile(userCredential.user.uid)
+      const userCredential = await loginWithEmail(email, password);
+      const uid = userCredential.user.uid;
+      console.log("Logged in user UID:", uid);
+
+      const profile = await getUserProfile(uid);
+      console.log("Fetched profile:", profile);
+
+      if (!profile) {
+        setError("⛔ No user profile found. Please contact support to set up your admin account.");
+        return;
+      }
 
       if (profile && profile.role === "admin") {
-        setUserProfile(profile)
-        navigate("/admin/dashboard")
+        setUserProfile(profile);
+        navigate("/admin/dashboard");
       } else {
-        setError("⛔ You do not have admin privileges.")
+        setError(`⛔ You do not have admin privileges. Role: ${profile?.role || "undefined"}`);
       }
     } catch (error) {
-      console.error("Login error:", error.message)
+      console.error("Login error:", error.message, error.code);
       if (error.code === "auth/wrong-password") {
-        setError("Incorrect password. Please try again.")
+        setError("Incorrect password. Please try again.");
       } else if (error.code === "auth/user-not-found") {
-        setError("No user found with this email.")
+        setError("No user found with this email.");
+      } else if (error.code === "permission-denied") {
+        setError("Permission denied. Ensure your Firestore profile is accessible.");
       } else {
-        setError("Failed to log in. Please check your credentials.")
+        setError("Failed to log in. Please check your credentials or contact support.");
       }
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <div className="container mt-5">
@@ -92,7 +103,7 @@ function AdminLogin() {
         </div>
       </div>
     </div>
-  )
+  );
 }
 
-export default AdminLogin
+export default AdminLogin;

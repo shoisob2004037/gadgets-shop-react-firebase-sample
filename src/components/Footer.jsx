@@ -67,7 +67,7 @@ function Footer() {
                 <span className="text-muted">+1 (555) 123-4567</span>
               </li>
               <li className="mb-2">
-                <span className="text-muted">support@shopreact.com</span>
+                <span className="text-muted">support@gadgetscare.com</span>
               </li>
             </ul>
           </div>
@@ -79,10 +79,10 @@ function Footer() {
         {/* Copyright */}
         <div className="row">
           <div className="col-md-6 text-center text-md-start mb-2 mb-md-0">
-            <p className="mb-0 text-muted">&copy; {currentYear} ShopReact. All rights reserved.</p>
+            <p className="mb-0 text-muted">&copy; {currentYear} Shoisob. All rights reserved.</p>
           </div>
           <div className="col-md-6 text-center text-md-end">
-            <p className="mb-0 text-muted">Made with ❤️ by ShopReact Team</p>
+            <p className="mb-0 text-muted">Made with ❤️ by Shoisob2004037</p>
           </div>
         </div>
       </div>

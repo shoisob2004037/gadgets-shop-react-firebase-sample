@@ -13,7 +13,8 @@ import Profile from "./pages/Profile";
 import ProtectedRoute from "./components/ProtectedRoute";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./App.css";
-import AdminOrdersDashboard from "./pages/AdminDashboard";
+import AdminDashboard from "./pages/AdminDashboard";
+import AdminLogin from "./pages/AdminLogin";
 
 function App() {
   return (
@@ -49,8 +50,14 @@ function App() {
                   path="/admin/orders"
                   element={
                     <ProtectedRoute>
-                      <AdminOrdersDashboard />
+                      <AdminDashboard />
                     </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/admin/login"
+                  element={
+                      <AdminLogin />
                   }
                 />
               </Routes>
